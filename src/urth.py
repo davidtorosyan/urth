@@ -1,28 +1,65 @@
 #!/bin/env python
 
+import logging
+from pathlib import Path
 from pyglossary import Glossary
+import shutil
 
-print("hello world")
+logger = logging.getLogger("urth")
 
-Glossary.init()
+# path constants
+root = Path(__file__).resolve().parent.parent
+out_dir = root / "out"
+out_path = out_dir / "urth_mobipocket"
+result_path = out_path / "OEBPS" / "content.mobi"
+mobi_path = out_dir / "urth.mobi"
 
-glos = Glossary()
-mydict = {
-	"a": "test1",
-	"b": "test2",
-	"c": "test3",
-}
-for word, defi in mydict.items():
-	glos.addEntryObj(glos.newEntry(
-		word,
-		defi,
-		defiFormat="m",  # "m" for plain text, "h" for HTML
-	))
+def main():
+    configure_logger()
+    safe_write()
 
-glos.setInfo("title", "My Test StarDict")
-glos.setInfo("author", "John Doe")
-glos.sourceLangName = "English"
-glos.targetLangName = "English"
-glos.write("out/test.mobi", format="Mobi")
+def configure_logger():
+    ch = logging.StreamHandler()
+    logger.addHandler(ch)
+    logger.setLevel(logging.INFO)
+    ch.setLevel(logging.INFO)
 
-print("done")
+def safe_write():
+    # preconditions
+    if out_dir.exists():
+        logger.warning("Out directory is dirty, cleaning.")
+        shutil.rmtree(out_dir)
+    logger.info("Writing dictionary...")
+    # do the work
+    write()
+    # check for success, and copy
+    if result_path.exists():
+        shutil.copy(result_path, mobi_path)
+        logger.info("Successfully created %s", str(mobi_path))
+    else:
+        logger.warning("Some error occurred, no mobi was created")
+
+def write():
+    Glossary.init()
+
+    glos = Glossary()
+    mydict = {
+        "a": "test1",
+        "b": "test2",
+        "c": "test3",
+    }
+    for word, defi in mydict.items():
+        glos.addEntryObj(glos.newEntry(
+            word,
+            defi,
+            defiFormat="m",  # "m" for plain text, "h" for HTML
+        ))
+
+    glos.setInfo("title", "My Test StarDict")
+    glos.setInfo("author", "John Doe")
+    glos.sourceLangName = "English"
+    glos.targetLangName = "English"
+    glos.write(str(out_path), format="Mobi")
+
+if __name__ == "__main__":
+    main()
