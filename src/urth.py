@@ -42,7 +42,7 @@ def main(
     """
     configure_logger()
     result = process_input(input_path)
-    safe_write()
+    safe_write(result)
 
 def configure_logger():
     ch = logging.StreamHandler()
@@ -70,14 +70,18 @@ def process_input(input_path: Path) -> Dict[str, str]:
             key = None
     return result
 
-def safe_write():
+def safe_write(defs: Dict[str, str]):
     # preconditions
+    if not defs:
+        logger.warning("No definitions found, no mobi created")
+        return
+    logger.info("Parsed %d definitions", len(defs))
     if out_dir.exists():
         logger.warning("Out directory is dirty, cleaning.")
         shutil.rmtree(out_dir)
     logger.info("Writing dictionary...")
     # do the work
-    write()
+    write(defs)
     # check for success, and copy
     if result_path.exists():
         shutil.copy(result_path, mobi_path)
@@ -86,20 +90,15 @@ def safe_write():
     else:
         logger.warning("Some error occurred, no mobi was created")
 
-def write():
+def write(defs: Dict[str, str]):
     Glossary.init()
 
     glos = Glossary()
-    mydict = {
-        "a": "test1",
-        "b": "test2",
-        "c": "test3",
-    }
-    for word, defi in mydict.items():
+    for word, defi in defs.items():
         glos.addEntryObj(glos.newEntry(
             word,
             defi,
-            defiFormat="m",  # "m" for plain text, "h" for HTML
+            defiFormat="m", # plain text
         ))
 
     glos.setInfo("title", "Lexicon Urthus")
