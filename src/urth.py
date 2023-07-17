@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from pyglossary import Glossary
 import shutil
+from typing_extensions import Annotated
 
 logger = logging.getLogger("urth")
 
@@ -15,7 +16,26 @@ out_path = out_dir / "urth_mobipocket"
 result_path = out_path / "OEBPS" / "content.mobi"
 mobi_path = out_dir / "urth.mobi"
 
-def main():
+def main(
+        input_path: Annotated[
+            Path, 
+            typer.Argument(
+                exists=True, 
+                file_okay=True,
+                dir_okay=False,
+                writable=False,
+                readable=True,
+                help="a path to the text version of Lexicon Urthus"
+        )]):
+    """
+    Creates a Kindle compatible version of Lexicon Urthus, the dictionary for the Urth Cycle.
+    
+    The Urth Cycle is a science fiction series by Gene Wolfe.
+
+    The Lexicon Urthus dictionary is a companion dictionary by Michael Andre-Driussi.
+
+    Note that this script does not provide the actual dictionary, it's just a conversion script.
+    """
     configure_logger()
     safe_write()
 
