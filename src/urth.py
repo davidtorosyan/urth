@@ -55,8 +55,8 @@ def write():
             defiFormat="m",  # "m" for plain text, "h" for HTML
         ))
 
-    glos.setInfo("title", "My Test StarDict")
-    glos.setInfo("author", "John Doe")
+    glos.setInfo("title", "Lexicon Urthus")
+    glos.setInfo("author", "Michael Andre-Driussi")
     glos.sourceLangName = "English"
     glos.targetLangName = "English"
     glos.write(str(out_path), format="Mobi")
