@@ -21,6 +21,8 @@ for word, defi in mydict.items():
 
 glos.setInfo("title", "My Test StarDict")
 glos.setInfo("author", "John Doe")
+glos.sourceLangName = "English"
+glos.targetLangName = "English"
 glos.write("out/test.mobi", format="Mobi")
 
 print("done")
