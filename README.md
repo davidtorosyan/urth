@@ -7,6 +7,8 @@ https://github.com/ilius/pyglossary
 
 also kindlegen
 
+also typer
+
 to run:
 `python src/urth.py`
 

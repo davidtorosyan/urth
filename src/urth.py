@@ -1,5 +1,6 @@
 #!/bin/env python
 
+import typer
 import logging
 from pathlib import Path
 from pyglossary import Glossary
@@ -62,4 +63,4 @@ def write():
     glos.write(str(out_path), format="Mobi")
 
 if __name__ == "__main__":
-    main()
+    typer.run(main)
