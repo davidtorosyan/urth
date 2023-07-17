@@ -36,7 +36,8 @@ def safe_write():
     # check for success, and copy
     if result_path.exists():
         shutil.copy(result_path, mobi_path)
-        logger.info("Successfully created %s", str(mobi_path))
+        relpath = mobi_path.relative_to(Path.cwd())
+        logger.info("Successfully created %s", str(relpath))
     else:
         logger.warning("Some error occurred, no mobi was created")
 
