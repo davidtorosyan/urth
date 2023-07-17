@@ -6,6 +6,7 @@ from pathlib import Path
 from pyglossary import Glossary
 import shutil
 from typing_extensions import Annotated
+from typing import Dict
 
 logger = logging.getLogger("urth")
 
@@ -15,6 +16,9 @@ out_dir = root / "out"
 out_path = out_dir / "urth_mobipocket"
 result_path = out_path / "OEBPS" / "content.mobi"
 mobi_path = out_dir / "urth.mobi"
+
+# other constants
+last_word = "zoetic"
 
 def main(
         input_path: Annotated[
@@ -37,6 +41,7 @@ def main(
     Note that this script does not provide the actual dictionary, it's just a conversion script.
     """
     configure_logger()
+    result = process_input(input_path)
     safe_write()
 
 def configure_logger():
@@ -44,6 +49,26 @@ def configure_logger():
     logger.addHandler(ch)
     logger.setLevel(logging.INFO)
     ch.setLevel(logging.INFO)
+
+def process_input(input_path: Path) -> Dict[str, str]:
+    result = {}
+    text = input_path.read_text()
+    arr = text.split("***")
+    # skip everything before the first definition
+    key = None
+    value = None
+    for segment in arr[1:]:
+        token = segment.strip()
+        if not key:
+            if token:
+                key = token
+        else:
+            truncated = token.split("\n\n\n")[0].strip()
+            result[key] = truncated
+            if key == last_word:
+                break
+            key = None
+    return result
 
 def safe_write():
     # preconditions
