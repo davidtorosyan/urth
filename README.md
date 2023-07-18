@@ -42,7 +42,9 @@ Note that you still need to get the Lexicon Urthus yourself (in epub format) - t
 
 ## Setup
 
-Required depencencies:
+Clone this repo.
+
+Required dependencies:
 * [python](https://www.python.org/) 3.11 or higher
 * [pyglossary](https://github.com/ilius/pyglossary)
 * [kindlegen](https://wiki.mobileread.com/wiki/KindleGen)
@@ -56,15 +58,13 @@ Also note that `kindlegen` needs to be in the PATH.
 
 ## Usage
 
-First, clone this repo.
-
-Then run:
+Run:
 
 ```sh
-python src/urth.py <path-to-lexicon-urthus.epub>
+python src/urth.py path/to/lexicon_urthus.epub path/to/urth.mobi
 ```
 
-If successful, this will print the path to output file: `urth.mobi`
+If successful, this will save the converted dictionary to `urth.mobi`.
 
 You can transfer this to your Kindle with a program like [Calibre](https://calibre-ebook.com/).
 

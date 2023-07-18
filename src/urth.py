@@ -10,17 +10,11 @@ from typing import Dict
 import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup
+import tempfile
 
 logger = logging.getLogger("urth")
 
-# path constants
-root = Path(__file__).resolve().parent.parent
-out_dir = root / "out"
-out_path = out_dir / "urth_mobipocket"
-result_path = out_path / "OEBPS" / "content.mobi"
-mobi_path = out_dir / "urth.mobi"
-
-# other constants
+# constants
 delim = "***"
 last_word = "zoetic"
 
@@ -34,6 +28,12 @@ def main(
                 writable=False,
                 readable=True,
                 help="a path to the epub version of Lexicon Urthus"
+        )],
+        output_path: Annotated[
+            Path, 
+            typer.Argument(
+                exists=False, 
+                help="a path to save the Kindle compatible mobi version"
         )]):
     """
     Creates a Kindle compatible version of Lexicon Urthus, the dictionary for the Urth Cycle.
@@ -47,7 +47,7 @@ def main(
     configure_logger()
     text = convert_epub_to_text(input_path)
     result = process_input(text)
-    safe_write(result)
+    safe_write(result, output_path)
 
 def configure_logger():
     ch = logging.StreamHandler()
@@ -87,26 +87,26 @@ def process_input(text: str) -> Dict[str, str]:
             key = None
     return result
 
-def safe_write(defs: Dict[str, str]):
+def safe_write(defs: Dict[str, str], output_path: Path):
     if not defs:
         logger.warning("No definitions found, no mobi created")
         return
     logger.info("Parsed %d definitions", len(defs))
-    if out_dir.exists():
-        logger.warning("Out directory is dirty, cleaning.")
-        shutil.rmtree(out_dir)
-    logger.info("Writing dictionary...")
-    # do the work
-    write(defs)
-    # check for success, and copy
-    if result_path.exists():
-        shutil.copy(result_path, mobi_path)
-        relpath = mobi_path.relative_to(Path.cwd())
-        logger.info("Successfully created %s", str(relpath))
-    else:
-        logger.warning("Some error occurred, no mobi was created")
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        tmpdir = Path(tmpdirname)
+        workdir = tmpdir / "urth_mobipocket"
+        result_path = workdir / "OEBPS" / "content.mobi"
+        # do the work
+        logger.info("Writing dictionary...")
+        write(defs, workdir)
+        # check for success, and copy
+        if result_path.exists():
+            shutil.copy(result_path, output_path)
+            logger.info("Successfully created %s", str(output_path))
+        else:
+            logger.warning("Some error occurred, no mobi was created")
 
-def write(defs: Dict[str, str]):
+def write(defs: Dict[str, str], workdir: Path):
     Glossary.init()
 
     glos = Glossary()
@@ -121,7 +121,7 @@ def write(defs: Dict[str, str]):
     glos.setInfo("author", "Michael Andre-Driussi")
     glos.sourceLangName = "English"
     glos.targetLangName = "English"
-    glos.write(str(out_path), format="Mobi")
+    glos.write(str(workdir), format="Mobi")
 
 if __name__ == "__main__":
     typer.run(main)
