@@ -38,7 +38,7 @@ E-Readers like the Amazon Kindle can reveal definitions by just holding your fin
 
 This script converts the Lexicon Urthus into a format compatible with this feature for easy access.
 
-Note that you still need to get the Lexicon Urthus yourself - this script doesn't contain any copywrited material.
+Note that you still need to get the Lexicon Urthus yourself (in epub format) - this script doesn't contain any copyrighted material.
 
 ## Setup
 
@@ -47,6 +47,8 @@ Required depencencies:
 * [pyglossary](https://github.com/ilius/pyglossary)
 * [kindlegen](https://wiki.mobileread.com/wiki/KindleGen)
 * [typer](https://typer.tiangolo.com/)
+* [ebooklib](https://github.com/aerkalov/ebooklib)
+* [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/)
 
 Note that if you're on Arch Linux you can install all of these from AUR.
 
@@ -59,13 +61,12 @@ First, clone this repo.
 Then run:
 
 ```sh
-python src/urth.py <path-to-lexicon-urthus.txt>
+python src/urth.py <path-to-lexicon-urthus.epub>
 ```
 
 If successful, this will print the path to output file: `urth.mobi`
 
 You can transfer this to your Kindle with a program like [Calibre](https://calibre-ebook.com/).
-
 
 When you look up a word's definition, click the dictionary selector on the bottom right of the pop-up to select the Lexicon Urthus.
 

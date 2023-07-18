@@ -7,6 +7,9 @@ from pyglossary import Glossary
 import shutil
 from typing_extensions import Annotated
 from typing import Dict
+import ebooklib
+from ebooklib import epub
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger("urth")
 
@@ -18,6 +21,7 @@ result_path = out_path / "OEBPS" / "content.mobi"
 mobi_path = out_dir / "urth.mobi"
 
 # other constants
+delim = "***"
 last_word = "zoetic"
 
 def main(
@@ -29,7 +33,7 @@ def main(
                 dir_okay=False,
                 writable=False,
                 readable=True,
-                help="a path to the text version of Lexicon Urthus"
+                help="a path to the epub version of Lexicon Urthus"
         )]):
     """
     Creates a Kindle compatible version of Lexicon Urthus, the dictionary for the Urth Cycle.
@@ -41,7 +45,8 @@ def main(
     Note that this script does not provide the actual dictionary, it's just a conversion script.
     """
     configure_logger()
-    result = process_input(input_path)
+    text = convert_epub_to_text(input_path)
+    result = process_input(text)
     safe_write(result)
 
 def configure_logger():
@@ -50,10 +55,22 @@ def configure_logger():
     logger.setLevel(logging.INFO)
     ch.setLevel(logging.INFO)
 
-def process_input(input_path: Path) -> Dict[str, str]:
+def convert_epub_to_text(input_path: Path) -> str:
+    arr = []
+    book = epub.read_epub(str(input_path), options={'ignore_ncx': True})
+    for item in book.get_items():
+        if item.get_type() == ebooklib.ITEM_DOCUMENT:
+            soup = BeautifulSoup(item.get_content(), "html.parser")
+            keys = soup.find_all(class_="bold")
+            for key in keys:
+                key.insert_before(delim)
+                key.insert_after(delim)
+            arr.append(soup.get_text())
+    return "\n".join(arr)
+
+def process_input(text: str) -> Dict[str, str]:
     result = {}
-    text = input_path.read_text()
-    arr = text.split("***")
+    arr = text.split(delim)
     # skip everything before the first definition
     key = None
     value = None
@@ -71,7 +88,6 @@ def process_input(input_path: Path) -> Dict[str, str]:
     return result
 
 def safe_write(defs: Dict[str, str]):
-    # preconditions
     if not defs:
         logger.warning("No definitions found, no mobi created")
         return
