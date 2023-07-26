@@ -9,7 +9,7 @@
 
 ## Introduction
 
-`urth.py` is a script which converts the Lexicon Urthus to a Kindle friendly dictionary format.
+`urth.py` is a script which converts the [_Lexicon Urthus_](https://www.siriusfiction.com/lexicon.html) to a Kindle friendly dictionary format.
 
 ### The Urth Cycle
 
@@ -20,7 +20,7 @@ _The Urth Cycle_ is a science fiction series written by **Gene Wolfe**, consisti
 * _The Citadel of the Autarch_ (1983)
 * _The Urth of the New Sun_ (1987)
 
-The first four books are known collectively as _The Book of the New Sun_.
+The first four books are known collectively as [_The Book of the New Sun_](https://en.wikipedia.org/wiki/The_Book_of_the_New_Sun).
 
 Together with other books in the series, these make up _The Solar Cycle_.
 
