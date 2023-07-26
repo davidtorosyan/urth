@@ -70,5 +70,9 @@ You can transfer this to your Kindle with a program like [Calibre](https://calib
 
 When you look up a word's definition, click the dictionary selector on the bottom right of the pop-up to select the Lexicon Urthus.
 
+## Development
+
+Formatted using [black](https://github.com/psf/black) and imports sorted with [isort](https://github.com/PyCQA/isort), both from VS Code.
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
