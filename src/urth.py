@@ -12,7 +12,7 @@ import ebooklib
 import typer
 from bs4 import BeautifulSoup
 from ebooklib import epub
-from pyglossary import Glossary
+from pyglossary.glossary_v2 import Glossary
 from typing_extensions import Annotated
 
 logger = logging.getLogger("urth")
@@ -122,7 +122,7 @@ def write(defs: Dict[str, str], workdir: Path):
 
     glos = Glossary()
     for word, defi in defs.items():
-        glos.addEntryObj(
+        glos.addEntry(
             glos.newEntry(
                 word,
                 defi,
@@ -136,7 +136,7 @@ def write(defs: Dict[str, str], workdir: Path):
     glos.targetLangName = "English"
     glos.write(
         str(workdir),
-        format="Mobi",
+        formatName="Mobi",
         kindlegen_path=get_kindlegen_path(),
     )
 
