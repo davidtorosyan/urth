@@ -44,34 +44,16 @@ Note that you still need to get the Lexicon Urthus yourself (in epub format) - t
 
 Clone this repo.
 
-Required dependencies:
-* [python](https://www.python.org/) 3.11 or higher
-* [pyglossary](https://github.com/ilius/pyglossary)
-* [kindlegen](https://wiki.mobileread.com/wiki/KindleGen)
-* [typer](https://typer.tiangolo.com/)
-* [ebooklib](https://github.com/aerkalov/ebooklib)
-* [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/)
+Install [uv](https://github.com/astral-sh/uv) if you don't have it already.
 
-Note that if you're on Arch Linux you can install all of these from AUR.
-
-Also note that `kindlegen` needs to be in the PATH.
-
----
-
-Alternatively, you can install the Python dependencies using pip:
-
-```sh
-python -m pip install -r requirements.txt
-```
-
-You still need to manually install kindlegen and ensure it is in your PATH.
+Install [kindlegen](https://aur.archlinux.org/packages/kindlegen) (on Arch Linux) or [Kindle Previewer](https://www.amazon.com/Kindle-Previewer/b?ie=UTF8&node=21381691011) on Windows.
 
 ## Usage
 
 Run:
 
 ```sh
-python src/urth.py path/to/lexicon_urthus.epub path/to/urth.mobi
+uv run python src/urth.py path/to/lexicon_urthus.epub path/to/urth.mobi
 ```
 
 If successful, this will save the converted dictionary to `urth.mobi`.
