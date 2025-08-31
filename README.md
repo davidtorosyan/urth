@@ -56,6 +56,16 @@ Note that if you're on Arch Linux you can install all of these from AUR.
 
 Also note that `kindlegen` needs to be in the PATH.
 
+---
+
+Alternatively, you can install the Python dependencies using pip:
+
+```sh
+python -m pip install -r requirements.txt
+```
+
+You still need to manually install kindlegen and ensure it is in your PATH.
+
 ## Usage
 
 Run:

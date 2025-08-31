@@ -1,0 +1,5 @@
+ebooklib
+bs4
+typer
+pyglossary
+typing-extensions
