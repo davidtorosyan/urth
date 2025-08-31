@@ -1,10 +1,12 @@
 #!/bin/env python
 
 import logging
+import os
+import platform
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import ebooklib
 import typer
@@ -132,7 +134,29 @@ def write(defs: Dict[str, str], workdir: Path):
     glos.setInfo("author", "Michael Andre-Driussi")
     glos.sourceLangName = "English"
     glos.targetLangName = "English"
-    glos.write(str(workdir), format="Mobi")
+    glos.write(
+        str(workdir),
+        format="Mobi",
+        kindlegen_path=get_kindlegen_path(),
+    )
+
+
+def get_kindlegen_path() -> Optional[str]:
+    if platform.system() == "Windows":
+        return _get_windows_kindlegen_path()
+    return None
+
+
+def _get_windows_kindlegen_path() -> Optional[str]:
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if not local_appdata:
+        return None
+    exe_path = (
+        Path(local_appdata) / "Amazon/Kindle Previewer 3/lib/fc/bin/kindlegen.exe"
+    )
+    if not exe_path.exists():
+        return None
+    return str(exe_path)
 
 
 if __name__ == "__main__":
