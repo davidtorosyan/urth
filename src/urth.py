@@ -6,21 +6,20 @@ import platform
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional, List, Tuple
-import inflect
+from typing import List, Optional, Tuple
 
 import ebooklib
+import inflect
 import typer
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, PageElement
 from ebooklib import epub
-from pyglossary.glossary_v2 import Glossary
 from pyglossary.entry_base import MultiStr
+from pyglossary.glossary_v2 import Glossary
 from typing_extensions import Annotated
 
 logger = logging.getLogger("urth")
 
 # constants
-delim = "***"
 last_word = "zoetic"
 
 
@@ -53,8 +52,9 @@ def main(
     Note that this script does not provide the actual dictionary, it's just a conversion script.
     """
     configure_logger()
-    text = convert_epub_to_text(input_path)
-    result = process_input(text)
+    soup = convert_epub_to_soup(input_path)
+    save_soup(soup, input_path, output_path)
+    result = process_input(soup)
     result = add_plurals(result)
     safe_write(result, output_path)
 
@@ -66,45 +66,74 @@ def configure_logger():
     ch.setLevel(logging.INFO)
 
 
-def convert_epub_to_text(input_path: Path) -> str:
-    arr = []
+def convert_epub_to_soup(input_path: Path) -> BeautifulSoup:
     book = epub.read_epub(str(input_path), options={"ignore_ncx": True})
+    epub_soup = BeautifulSoup("", "html.parser")
     for item in book.get_items():
         if item.get_type() == ebooklib.ITEM_DOCUMENT:
             soup = BeautifulSoup(item.get_content(), "html.parser")
-            keys = soup.find_all(class_="bold")
-            for key in keys:
-                key.insert_before(delim)
-                key.insert_after(delim)
-            arr.append(soup.get_text())
-    return "\n".join(arr)
+            epub_soup.extend(soup.body.contents)
+    return epub_soup
 
 
-def process_input(text: str) -> Dict[str, str]:
-    result = {}
-    arr = text.split(delim)
-    # skip everything before the first definition
-    key = None
-    value = None
-    for segment in arr[1:]:
-        token = segment.strip()
-        if not key:
-            if token:
-                key = token
-        else:
-            truncated = token.split("\n\n\n")[0].strip()
-            result[key] = truncated
-            if key == last_word:
-                break
-            key = None
+def save_soup(soup: BeautifulSoup, input_path: Path, output_path: Path):
+    html_filename = input_path.with_suffix(".html").name
+    html_path = output_path.parent / html_filename
+    html_path.write_text(soup.prettify(), encoding="utf-8")
+    logger.info(f"Wrote raw HTML to {html_path}")
+
+
+def process_input(soup: BeautifulSoup) -> List[Tuple[str, str]]:
+    result = []
+    word: Optional[str] = None
+    definition: List[str] = []
+    for el in soup.find_all(True, recursive=False):
+        # detect word
+        current_word = get_word(el)
+        if current_word:
+            # flush previous word
+            if word:
+                result.append((word, join_definition(definition)))
+            word = current_word
+            definition.clear()
+        # detect definition
+        if word:
+            current_definition = get_definition(el)
+            if current_definition:
+                definition.append(current_definition)
+        if word == last_word:
+            result.append((word, join_definition(definition)))
+            break
     return result
 
 
-def add_plurals(defs: Dict[str, str]) -> List[Tuple[MultiStr, str]]:
+def get_word(el: PageElement) -> Optional[str]:
+    words = el.find_all(class_="bold", recursive=False)
+    return merge(words)
+
+
+def get_definition(el: PageElement) -> Optional[str]:
+    words = el.find_all(class_="bold", recursive=False)
+    for word in words:
+        word.decompose()
+    return el.get_text().strip() or None
+
+
+def merge(els: List[PageElement]) -> Optional[str]:
+    result = " ".join(el.get_text() for el in els)
+    result = result.strip()
+    return result or None
+
+
+def join_definition(definitions: List[str]) -> str:
+    return "<br>".join(definitions)
+
+
+def add_plurals(defs: List[Tuple[str, str]]) -> List[Tuple[MultiStr, str]]:
     plural_engine = inflect.engine()
     new_defs: List[Tuple[MultiStr, str]] = []
     plural_count = 0
-    for word, definition in defs.items():
+    for word, definition in defs:
         try:
             plural = plural_engine.plural(word)
         except:
@@ -149,7 +178,7 @@ def write(defs: List[Tuple[MultiStr, str]], workdir: Path):
             glos.newEntry(
                 forms,
                 defi,
-                defiFormat="m",  # plain text
+                defiFormat="h",  # html
             )
         )
 
