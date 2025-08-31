@@ -6,13 +6,15 @@ import platform
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Tuple
+import inflect
 
 import ebooklib
 import typer
 from bs4 import BeautifulSoup
 from ebooklib import epub
 from pyglossary.glossary_v2 import Glossary
+from pyglossary.entry_base import MultiStr
 from typing_extensions import Annotated
 
 logger = logging.getLogger("urth")
@@ -53,6 +55,7 @@ def main(
     configure_logger()
     text = convert_epub_to_text(input_path)
     result = process_input(text)
+    result = add_plurals(result)
     safe_write(result, output_path)
 
 
@@ -97,7 +100,27 @@ def process_input(text: str) -> Dict[str, str]:
     return result
 
 
-def safe_write(defs: Dict[str, str], output_path: Path):
+def add_plurals(defs: Dict[str, str]) -> List[Tuple[MultiStr, str]]:
+    plural_engine = inflect.engine()
+    new_defs: List[Tuple[MultiStr, str]] = []
+    plural_count = 0
+    for word, definition in defs.items():
+        try:
+            plural = plural_engine.plural(word)
+        except:
+            logger.warning("Failure while checking plural for %s", word)
+            plural = None
+        if plural and plural != word:
+            key = [word, plural]
+            plural_count += 1
+        else:
+            key = word
+        new_defs.append((key, definition))
+    logger.info("Added %d plural forms", plural_count)
+    return new_defs
+
+
+def safe_write(defs: List[Tuple[MultiStr, str]], output_path: Path):
     if not defs:
         logger.warning("No definitions found, no mobi created")
         return
@@ -117,14 +140,14 @@ def safe_write(defs: Dict[str, str], output_path: Path):
             logger.warning("Some error occurred, no mobi was created")
 
 
-def write(defs: Dict[str, str], workdir: Path):
+def write(defs: List[Tuple[MultiStr, str]], workdir: Path):
     Glossary.init()
 
     glos = Glossary()
-    for word, defi in defs.items():
+    for forms, defi in defs:
         glos.addEntry(
             glos.newEntry(
-                word,
+                forms,
                 defi,
                 defiFormat="m",  # plain text
             )
